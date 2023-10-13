@@ -1,5 +1,6 @@
 package com.example.accounts.service;
 
+import com.example.accounts.dto.AccountDto;
 import com.example.accounts.model.Account;
 import com.example.accounts.model.Owner;
 import com.example.accounts.model.Record;
@@ -46,9 +47,14 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    public AccountDto getByOwnerLogin(String login) {
+        List<Account> accounts = accountRepository.findByOwnerLogin(login);
 
-    public List<Account> getByOwnerLogin(String login) {
-        return accountRepository.findByOwnerLogin(login);
+        BigDecimal sum = accounts.stream()
+                .map(Account::getBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new AccountDto(login, accounts, sum.toString());
     }
 
     @Transactional
@@ -70,7 +76,7 @@ public class AccountService {
     }
 
     @Transactional
-    public void transferBalanceBetweenAccounts(String currentAccountNumber, String targetAccountNumber,  Double amount, Integer currentAccountPinCode) {
+    public void transferBalanceBetweenAccounts(String currentAccountNumber, String targetAccountNumber, Double amount, Integer currentAccountPinCode) {
         Account currentAccount = accountRepository.findByNumberAndPinCode(currentAccountNumber, currentAccountPinCode);
         Account targetAccount = accountRepository.findByNumber(targetAccountNumber);
 
